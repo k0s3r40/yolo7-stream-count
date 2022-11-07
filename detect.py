@@ -7,6 +7,7 @@ import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
 
+from camera import Camera
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
 from utils.general import check_img_size, check_requirements, check_imshow, non_max_suppression, apply_classifier, \
@@ -14,6 +15,7 @@ from utils.general import check_img_size, check_requirements, check_imshow, non_
 from utils.plots import plot_one_box
 from utils.torch_utils import select_device, load_classifier, time_synchronized, TracedModel
 import numpy as np
+import re
 
 def add_mask(background):
     b_channel, g_channel, r_channel = cv2.split(background)
@@ -40,6 +42,7 @@ def add_mask(background):
 def detect(save_img=False):
     source, weights, view_img, save_txt, imgsz, trace = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size, not opt.no_trace
     camera_id = opt.camera_id
+    camera = Camera(camera_id =camera_id)
     save_img = not opt.nosave and not source.endswith('.txt')  # save inference images
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://', 'https://'))
@@ -159,7 +162,10 @@ def detect(save_img=False):
             # Print time (inference + NMS)
             print(f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
             print(f'{s} {camera_id}')
-
+            for i in re.findall('\d+\scars', s):
+                cars_found = int(i.split(' ')[0])
+                # print(cars_found)
+                camera.add_to_values(cars_found)
 
             # Stream results
             if view_img:
