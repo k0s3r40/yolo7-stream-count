@@ -1,6 +1,9 @@
+import base64
+
 from backend_communicator import BackendCommunicator
 import threading
-
+import numpy as np
+import cv2
 
 class Camera:
     def __init__(self, camera_id):
@@ -8,6 +11,11 @@ class Camera:
         self.values = []
         self.current_load = 0
         self.backend_communicator = BackendCommunicator(host='http://0.0.0.0:8000', camera_id=self.camera_id)
+        self.overlay = self.get_overlay()
+        if self.overlay:
+            img = base64.b64decode(self.overlay)
+            np_data = np.fromstring(img, np.uint8)
+            self.overlay = cv2.imdecode(np_data, cv2.IMREAD_UNCHANGED)
 
     def _normalize_values(self):
         self.current_load = sum(self.values)//len(self.values)
@@ -26,5 +34,8 @@ class Camera:
         send_data.start()
         send_data.join()
 
+
+    def get_overlay(self):
+        return self.backend_communicator.get_overlay()
 
 

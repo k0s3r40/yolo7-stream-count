@@ -262,9 +262,9 @@ class LoadWebcam:  # for inference
     def __len__(self):
         return 0
 
-def add_mask(background):
+def add_mask(background, overlay):
     # background = cv2.imread('/tmp/overlap.png')
-    overlay = cv2.imread('mask1.png', cv2.IMREAD_UNCHANGED)  # IMREAD_UNCHANGED => open image with the alpha channel
+    # overlay = cv2.imread('mask1.png', cv2.IMREAD_UNCHANGED)  # IMREAD_UNCHANGED => open image with the alpha channel
 
     # separate the alpha channel from the color channels
     alpha_channel = overlay[:, :, 3] / 255  # convert from 0-255 to 0.0-1.0
@@ -295,11 +295,11 @@ def add_mask(background):
 
 
 class LoadStreams:  # multiple IP or RTSP cameras
-    def __init__(self, sources='streams.txt', img_size=640, stride=32):
+    def __init__(self, sources='streams.txt', img_size=640, stride=32, overlay=None):
         self.mode = 'stream'
         self.img_size = img_size
         self.stride = stride
-
+        self.overlay = overlay
         if os.path.isfile(sources):
             with open(sources, 'r') as f:
                 sources = [x.strip() for x in f.read().strip().splitlines() if len(x.strip())]
@@ -325,7 +325,7 @@ class LoadStreams:  # multiple IP or RTSP cameras
 
             _, frame = cap.read()  # guarantee first frame
             frame = cv2.resize(frame, (960, 541))
-            frame = add_mask(frame)
+            frame = add_mask(frame, self.overlay)
             self.imgs[i] = frame
             thread = Thread(target=self.update, args=([i, cap]), daemon=True)
             print(f' success ({w}x{h} at {self.fps:.2f} FPS).')
@@ -348,7 +348,7 @@ class LoadStreams:  # multiple IP or RTSP cameras
             if n == 4:  # read every 4th frame
                 success, frame = cap.retrieve()
                 frame = cv2.resize(frame, (960, 541))
-                frame = add_mask(frame)
+                frame = add_mask(frame, self.overlay)
 
                 self.imgs[index] = frame if success else self.imgs[index] * 0
                 n = 0
