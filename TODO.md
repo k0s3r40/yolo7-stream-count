@@ -1,1 +1,2 @@
-[ ] - Get the camera mask dynamically
+- [x] Get the camera mask dynamically
+- [ ] Figure out rotation camera
