@@ -16,6 +16,7 @@ class Camera:
             img = base64.b64decode(self.overlay)
             np_data = np.fromstring(img, np.uint8)
             self.overlay = cv2.imdecode(np_data, cv2.IMREAD_UNCHANGED)
+            self.overlay = cv2.resize(self.overlay, (960, 541))
 
     def _normalize_values(self):
         self.current_load = sum(self.values)//len(self.values)
